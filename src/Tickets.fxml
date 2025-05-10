@@ -38,8 +38,14 @@
                         </FXCollections>
                     </items>
                 </ComboBox>
+                
+                <ComboBox fx:id="cmbDepartamento" promptText="Departamento"/>
+                <AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="paquete.TicketsController">
 
                 <Button fx:id="btnGuardar" text="Guardar" onAction="#handleGuardar" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                <Button fx:id="btnDeshacer" onAction="#handleDeshacer" text="Deshacer" />
+                <Button fx:id="btnAtender" onAction="#handleAtenderSiguiente" text="Atender Siguiente" />
+
             </GridPane>
         </VBox>
     </children>
