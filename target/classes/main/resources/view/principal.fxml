@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.PrincipalController">
+    <children>
+        <Button layoutX="30" layoutY="40" text="Gestionar Usuarios" onAction="#abrirUsuarios"/>
+        <Button layoutX="30" layoutY="80" text="Gestionar Estados" onAction="#abrirEstados"/>
+        <Button layoutX="30" layoutY="120" text="Gestionar Tickets" onAction="#abrirTickets"/>
+        <Button layoutX="30" layoutY="160" text="Cerrar sesión" onAction="#cerrarSesion"/>
+    </children>
+</AnchorPane>
+

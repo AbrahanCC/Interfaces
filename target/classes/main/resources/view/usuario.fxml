@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.UsuarioController">
+    <VBox spacing="15" AnchorPane.topAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="10">
+        <Label text="Gestión de Usuarios" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+        <TableView fx:id="tablaUsuarios" prefHeight="200">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="50" />
+                <TableColumn fx:id="colNombre" text="Nombre" prefWidth="150" />
+                <TableColumn fx:id="colCorreo" text="Correo" prefWidth="200" />
+                <TableColumn fx:id="colTipo" text="Tipo de Usuario" prefWidth="150" />
+            </columns>
+        </TableView>
+
+        <!-- Campos de entrada -->
+        <HBox spacing="10">
+            <TextField fx:id="txtNombre" promptText="Nombre" />
+            <TextField fx:id="txtCorreo" promptText="Correo" />
+            <PasswordField fx:id="txtClave" promptText="Clave" />
+            <ComboBox fx:id="comboTipoUsuario" promptText="Tipo">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="administrador" />
+                        <String fx:value="tecnico" />
+                        <String fx:value="usuario" />
+                    </FXCollections>
+                </items>
+            </ComboBox>
+        </HBox>
+
+        <!-- Botones -->
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Agregar" onAction="#agregarUsuario" />
+            <Button text="Editar" onAction="#editarUsuario" />
+            <Button text="Eliminar" onAction="#eliminarUsuario" />
+        </HBox>
+    </VBox>
+</AnchorPane>
