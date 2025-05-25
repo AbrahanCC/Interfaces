@@ -15,16 +15,13 @@
 
                 <Label text="Crear Nuevo Ticket" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
 
-                <Label text="Título del ticket:" />
-                <TextField fx:id="tituloField" promptText="Ingrese el título del ticket" />
-
                 <Label text="Descripción:" />
                 <TextArea fx:id="descripcionArea" promptText="Describa el problema" prefRowCount="5" wrapText="true" />
 
                 <HBox spacing="10.0">
                     <children>
                         <Button text="Guardar Ticket" onAction="#guardarTicket" />
-                        <Button text="Volver al menú" onAction="#volverAlMenu" />
+                        <Button text="Volver al Menú" onAction="#volverAlMenu" />
                     </children>
                 </HBox>
             </children>

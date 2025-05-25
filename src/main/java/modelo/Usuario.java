@@ -7,9 +7,11 @@ public class Usuario {
     private String clave;
     private String tipoUsuario;
 
+    // Constructor vacío
     public Usuario() {
     }
 
+    // Constructor completo
     public Usuario(int id, String nombre, String correo, String clave, String tipoUsuario) {
         this.id = id;
         this.nombre = nombre;

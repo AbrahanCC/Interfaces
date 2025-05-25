@@ -19,13 +19,13 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                EstadoTicket est = construirDesdeResultSet(rs);
-                est.setEstadosSiguientes(obtenerEstadosSiguientes(est.getId()));
-                lista.add(est);
+                EstadoTicket estado = construirDesdeResultSet(rs);
+                estado.setEstadosSiguientes(obtenerEstadosSiguientes(estado.getId()));
+                lista.add(estado);
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error al obtener todos los estados: " + e.getMessage());
         }
 
         return lista;
@@ -48,7 +48,7 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error al obtener estado por ID: " + e.getMessage());
         }
 
         return null;
@@ -56,8 +56,8 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
 
     @Override
     public boolean guardarEstado(EstadoTicket estado) {
-        boolean actualizar = (estado.getId() > 0);
-        String sql = actualizar
+        boolean esActualizar = estado.getId() > 0;
+        String sql = esActualizar
                 ? "UPDATE estado_ticket SET nombre_estado=?, descripcion=?, es_final=? WHERE id=?"
                 : "INSERT INTO estado_ticket(nombre_estado, descripcion, es_final) VALUES (?, ?, ?)";
 
@@ -68,13 +68,13 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
             stmt.setString(2, estado.getDescripcion());
             stmt.setBoolean(3, estado.isEsFinal());
 
-            if (actualizar) {
+            if (esActualizar) {
                 stmt.setInt(4, estado.getId());
             }
 
             int filasAfectadas = stmt.executeUpdate();
 
-            if (!actualizar) {
+            if (!esActualizar) {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         estado.setId(rs.getInt(1));
@@ -85,7 +85,7 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
             return filasAfectadas > 0 && guardarTransiciones(estado.getId(), estado.getEstadosSiguientes());
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error al guardar o actualizar estado: " + e.getMessage());
             return false;
         }
     }
@@ -101,7 +101,7 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error al eliminar estado: " + e.getMessage());
             return false;
         }
     }
@@ -122,7 +122,7 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error al obtener estados siguientes: " + e.getMessage());
         }
 
         return lista;
@@ -131,30 +131,37 @@ public class EstadoTicketDAOImpl implements EstadoTicketDAO {
     @Override
     public boolean guardarTransiciones(int estadoOrigenId, List<Integer> estadosDestino) {
         String deleteSQL = "DELETE FROM transiciones_estado WHERE estado_origen_id = ?";
-        String insertSQL = "INSERT INTO transiciones_estado (estado_origen, estado_destino_id) VALUES (?, ?)";
+        String insertSQL = "INSERT INTO transiciones_estado (estado_origen_id, estado_destino_id) VALUES (?, ?)";
 
         try (Connection conn = Conexion.getConexion()) {
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false);  // Inicia transacción
 
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
                 deleteStmt.setInt(1, estadoOrigenId);
                 deleteStmt.executeUpdate();
             }
 
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
-                for (int destinoId : estadosDestino) {
-                    insertStmt.setInt(1, estadoOrigenId);
-                    insertStmt.setInt(2, destinoId);
-                    insertStmt.addBatch();
+            if (!estadosDestino.isEmpty()) {
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
+                    for (int destinoId : estadosDestino) {
+                        insertStmt.setInt(1, estadoOrigenId);
+                        insertStmt.setInt(2, destinoId);
+                        insertStmt.addBatch();
+                    }
+                    insertStmt.executeBatch();
                 }
-                insertStmt.executeBatch();
             }
 
             conn.commit();
             return true;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error al guardar transiciones: " + e.getMessage());
+            try (Connection conn = Conexion.getConexion()) {
+                conn.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Error al hacer rollback: " + ex.getMessage());
+            }
             return false;
         }
     }

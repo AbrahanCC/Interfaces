@@ -1,151 +1,144 @@
 package controllers;
 
-import dao.EstadoTicketDAO;
 import dao.EstadoTicketDAOImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import modelo.EstadoTicket;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class EstadoTicketController {
 
-    @FXML private TableView<EstadoTicket> tablaEstados;
-    @FXML private TableColumn<EstadoTicket, String> colNombre;
-    @FXML private TableColumn<EstadoTicket, String> colDescripcion;
-    @FXML private TableColumn<EstadoTicket, Boolean> colEsFinal;
+    @FXML
+    private TextField nombreEstadoField;
 
-    @FXML private TextField txtNombre;
-    @FXML private TextField txtDescripcion;
-    @FXML private CheckBox chkEsFinal;
+    @FXML
+    private TextArea descripcionField;
 
-    @FXML private ListView<EstadoTicket> listaTransiciones;
+    @FXML
+    private CheckBox esFinalCheck;
 
-    @FXML private Button btnGuardar;
-    @FXML private Button btnEliminar;
+    @FXML
+    private Button guardarBtn;
 
-    private final EstadoTicketDAO estadoDAO = new EstadoTicketDAOImpl();
-    private ObservableList<EstadoTicket> listaObservable;
-    private EstadoTicket estadoSeleccionado;
+    @FXML
+    private TableView<EstadoTicket> tablaEstados;
+
+    @FXML
+    private TableColumn<EstadoTicket, Integer> idColumna;
+
+    @FXML
+    private TableColumn<EstadoTicket, String> nombreColumna;
+
+    private final EstadoTicketDAOImpl estadoDAO = new EstadoTicketDAOImpl();
+    private final ObservableList<EstadoTicket> listaEstados = FXCollections.observableArrayList();
+    private EstadoTicket estadoSeleccionado = null;
 
     @FXML
     public void initialize() {
-        colNombre.setCellValueFactory(c -> c.getValue().nombreEstadoProperty());
-        colDescripcion.setCellValueFactory(c -> c.getValue().descripcionProperty());
-        colEsFinal.setCellValueFactory(c -> c.getValue().esFinalProperty());
+        idColumna.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
+        nombreColumna.setCellValueFactory(cellData -> cellData.getValue().nombreEstadoProperty());
 
-        listaTransiciones.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
+        tablaEstados.setItems(listaEstados);
         cargarEstados();
-
-        tablaEstados.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
-            if (newSel != null) {
-                estadoSeleccionado = newSel;
-                mostrarDatosEstado(newSel);
-            }
-        });
     }
 
     private void cargarEstados() {
-        List<EstadoTicket> estados = estadoDAO.obtenerTodos();
-        listaObservable = FXCollections.observableArrayList(estados);
-        tablaEstados.setItems(listaObservable);
-        listaTransiciones.setItems(listaObservable);
-    }
-
-    private void mostrarDatosEstado(EstadoTicket estado) {
-        txtNombre.setText(estado.getNombreEstado());
-        txtDescripcion.setText(estado.getDescripcion());
-        chkEsFinal.setSelected(estado.isEsFinal());
-
-        List<Integer> transicionesIds = estadoDAO.obtenerEstadosSiguientes(estado.getId());
-
-        listaTransiciones.getSelectionModel().clearSelection();
-        for (EstadoTicket est : listaObservable) {
-            if (transicionesIds.contains(est.getId())) {
-                listaTransiciones.getSelectionModel().select(est);
-            }
-        }
+        listaEstados.clear();
+        listaEstados.addAll(estadoDAO.obtenerTodos());
     }
 
     @FXML
     private void guardarEstado() {
-        String nombre = txtNombre.getText().trim();
-        String descripcion = txtDescripcion.getText().trim();
-        boolean esFinal = chkEsFinal.isSelected();
+        String nombre = nombreEstadoField.getText().trim();
+        String descripcion = descripcionField.getText().trim();
+        boolean esFinal = esFinalCheck.isSelected();
 
         if (nombre.isEmpty()) {
-            mostrarAlerta("Validación", "El nombre no puede estar vacío.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Campo vacío", "Por favor ingrese un nombre para el estado.");
             return;
         }
 
-        EstadoTicket estado = new EstadoTicket();
-        if (estadoSeleccionado != null) {
-            estado.setId(estadoSeleccionado.getId());
-        }
+        if (estadoSeleccionado == null) {
+            // Nuevo estado
+            EstadoTicket nuevoEstado = new EstadoTicket();
+            nuevoEstado.setNombreEstado(nombre);
+            nuevoEstado.setDescripcion(descripcion);
+            nuevoEstado.setEsFinal(esFinal);
 
-        estado.setNombreEstado(nombre);
-        estado.setDescripcion(descripcion);
-        estado.setEsFinal(esFinal);
-
-        List<Integer> idsSiguientes = new ArrayList<>();
-        for (EstadoTicket e : listaTransiciones.getSelectionModel().getSelectedItems()) {
-            idsSiguientes.add(e.getId());
-        }
-        estado.setEstadosSiguientes(idsSiguientes);
-
-        boolean exito = estadoDAO.guardarEstado(estado);
-        if (exito) {
-            limpiarFormulario();
-            cargarEstados();
+            if (estadoDAO.guardarEstado(nuevoEstado)) {
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Estado agregado correctamente.");
+                cargarEstados();
+                limpiarFormulario();
+            } else {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo agregar el estado.");
+            }
         } else {
-            mostrarAlerta("Error", "No se pudo guardar el estado.");
+            // Editar estado
+            estadoSeleccionado.setNombreEstado(nombre);
+            estadoSeleccionado.setDescripcion(descripcion);
+            estadoSeleccionado.setEsFinal(esFinal);
+
+            if (estadoDAO.guardarEstado(estadoSeleccionado)) {
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Estado actualizado correctamente.");
+                cargarEstados();
+                limpiarFormulario();
+            } else {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo actualizar el estado.");
+            }
+        }
+    }
+
+    @FXML
+    private void seleccionarEstado(MouseEvent event) {
+        estadoSeleccionado = tablaEstados.getSelectionModel().getSelectedItem();
+
+        if (estadoSeleccionado != null) {
+            nombreEstadoField.setText(estadoSeleccionado.getNombreEstado());
+            descripcionField.setText(estadoSeleccionado.getDescripcion());
+            esFinalCheck.setSelected(estadoSeleccionado.isEsFinal());
         }
     }
 
     @FXML
     private void eliminarEstado() {
         if (estadoSeleccionado == null) {
-            mostrarAlerta("Seleccione un estado", "Debe seleccionar un estado para eliminar.");
+            mostrarAlerta(Alert.AlertType.WARNING, "Selección requerida", "Seleccione un estado para eliminar.");
             return;
         }
 
-        boolean confirmado = mostrarConfirmacion("¿Está seguro?", "¿Desea eliminar este estado?");
-        if (!confirmado) return;
-
-        boolean exito = estadoDAO.eliminarEstado(estadoSeleccionado.getId());
-        if (exito) {
-            limpiarFormulario();
-            cargarEstados();
-        } else {
-            mostrarAlerta("No se puede eliminar", "Este estado está en uso y no se puede eliminar.");
-        }
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Confirmar eliminación");
+        confirmacion.setHeaderText(null);
+        confirmacion.setContentText("¿Está seguro de que desea eliminar el estado seleccionado?");
+        confirmacion.showAndWait().ifPresent(respuesta -> {
+            if (respuesta == ButtonType.OK) {
+                if (estadoDAO.eliminarEstado(estadoSeleccionado.getId())) {
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Estado eliminado correctamente.");
+                    cargarEstados();
+                    limpiarFormulario();
+                } else {
+                    mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo eliminar el estado.");
+                }
+            }
+        });
     }
 
+    @FXML
     private void limpiarFormulario() {
-        txtNombre.clear();
-        txtDescripcion.clear();
-        chkEsFinal.setSelected(false);
-        listaTransiciones.getSelectionModel().clearSelection();
+        nombreEstadoField.clear();
+        descripcionField.clear();
+        esFinalCheck.setSelected(false);
         estadoSeleccionado = null;
+        tablaEstados.getSelectionModel().clearSelection();
     }
 
-    private void mostrarAlerta(String titulo, String mensaje) {
-        Alert alerta = new Alert(Alert.AlertType.WARNING);
+    private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {
+        Alert alerta = new Alert(tipo);
         alerta.setTitle(titulo);
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.showAndWait();
-    }
-
-    private boolean mostrarConfirmacion(String titulo, String mensaje) {
-        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        return alerta.showAndWait().filter(btn -> btn == ButtonType.OK).isPresent();
     }
 }

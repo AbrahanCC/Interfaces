@@ -9,17 +9,22 @@
             fx:controller="controllers.TicketController"
             prefWidth="800" prefHeight="600">
 
+   <!-- Parte superior: etiqueta de usuario -->
    <top>
-      <HBox spacing="20">
+      <HBox spacing="20" alignment="CENTER_LEFT">
          <padding>
             <Insets top="10" right="10" bottom="10" left="10"/>
          </padding>
-         <Label fx:id="labelUsuario" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+         <Label fx:id="labelUsuario"
+                style="-fx-font-size: 16px; -fx-font-weight: bold;" />
       </HBox>
    </top>
 
+   <!-- Parte central: tabla de tickets -->
    <center>
-      <TableView fx:id="tablaTickets" prefHeight="400" prefWidth="700">
+      <TableView fx:id="tablaTickets"
+                 prefHeight="400"
+                 prefWidth="700">
          <columns>
             <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
             <TableColumn fx:id="colTitulo" text="Título" prefWidth="150"/>
@@ -32,8 +37,9 @@
       </TableView>
    </center>
 
+   <!-- Parte inferior: botones -->
    <bottom>
-      <HBox spacing="15" alignment="center">
+      <HBox spacing="15" alignment="CENTER">
          <padding>
             <Insets top="15" right="15" bottom="15" left="15"/>
          </padding>

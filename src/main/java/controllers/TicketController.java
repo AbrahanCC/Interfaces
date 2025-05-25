@@ -15,7 +15,6 @@ public class TicketController {
     @FXML private Label labelUsuario;
     @FXML private TableView<Ticket> tablaTickets;
     @FXML private TableColumn<Ticket, Integer> colId;
-    @FXML private TableColumn<Ticket, String> colTitulo;
     @FXML private TableColumn<Ticket, String> colDescripcion;
     @FXML private TableColumn<Ticket, String> colFecha;
     @FXML private TableColumn<Ticket, String> colEstado;
@@ -31,15 +30,18 @@ public class TicketController {
 
     @FXML
     public void initialize() {
+        configurarColumnas();
+        cargarTickets();
+    }
+
+    private void configurarColumnas() {
         colId.setCellValueFactory(cell -> new javafx.beans.property.SimpleIntegerProperty(cell.getValue().getId()).asObject());
-        colTitulo.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getTitulo()));
         colDescripcion.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getDescripcion()));
-        colFecha.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getFechaCreacion().toString()));
-        colEstado.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getEstado()));
+        colFecha.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(
+                cell.getValue().getFechaCreacion() != null ? cell.getValue().getFechaCreacion().toString() : ""));
+        colEstado.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getNombreEstado()));
         colCreador.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getNombreCreador()));
         colTecnico.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getNombreTecnico()));
-
-        cargarTickets();
     }
 
     private void cargarTickets() {
@@ -51,29 +53,25 @@ public class TicketController {
     @FXML
     public void actualizarEstado() {
         if (!puedeEditar()) {
-            mostrarAlerta("Permiso denegado. Solo técnicos y administradores pueden actualizar estados.");
+            mostrarAlerta("Permiso denegado", "Solo técnicos y administradores pueden actualizar estados.");
             return;
         }
 
         Ticket ticket = tablaTickets.getSelectionModel().getSelectedItem();
         if (ticket == null) {
-            mostrarAlerta("Debe seleccionar un ticket.");
+            mostrarAlerta("Selección requerida", "Debe seleccionar un ticket.");
             return;
         }
 
-        EstadoTicket estadoActual = estadoDAO.obtenerTodos().stream()
-                .filter(est -> est.getNombreEstado().equals(ticket.getEstado()))
-                .findFirst()
-                .orElse(null);
-
+        EstadoTicket estadoActual = ticket.getEstado();
         if (estadoActual == null) {
-            mostrarAlerta("Estado actual no encontrado.");
+            mostrarAlerta("Error", "El ticket no tiene estado asignado.");
             return;
         }
 
         List<Integer> idsSiguientes = estadoDAO.obtenerEstadosSiguientes(estadoActual.getId());
         if (idsSiguientes.isEmpty()) {
-            mostrarAlerta("No hay transiciones posibles desde este estado.");
+            mostrarAlerta("Sin transiciones", "No hay transiciones posibles desde este estado.");
             return;
         }
 
@@ -87,7 +85,7 @@ public class TicketController {
         Optional<EstadoTicket> resultado = dialog.showAndWait();
 
         resultado.ifPresent(nuevoEstado -> {
-            ticket.setEstado(nuevoEstado.getNombreEstado());
+            ticket.setEstado(nuevoEstado);
             ticketDAO.actualizar(ticket);
             cargarTickets();
         });
@@ -96,19 +94,19 @@ public class TicketController {
     @FXML
     public void asignarTecnico() {
         if (!puedeEditar()) {
-            mostrarAlerta("Permiso denegado. Solo técnicos y administradores pueden asignar técnicos.");
+            mostrarAlerta("Permiso denegado", "Solo técnicos y administradores pueden asignar técnicos.");
             return;
         }
 
         Ticket ticket = tablaTickets.getSelectionModel().getSelectedItem();
         if (ticket == null) {
-            mostrarAlerta("Debe seleccionar un ticket.");
+            mostrarAlerta("Selección requerida", "Debe seleccionar un ticket.");
             return;
         }
 
         List<Usuario> tecnicos = usuarioDAO.obtenerPorRol("Técnico");
         if (tecnicos.isEmpty()) {
-            mostrarAlerta("No hay técnicos disponibles.");
+            mostrarAlerta("Sin técnicos", "No hay técnicos disponibles.");
             return;
         }
 
@@ -125,19 +123,21 @@ public class TicketController {
     }
 
     private boolean puedeEditar() {
-        return usuario.getTipoUsuario().equalsIgnoreCase("administrador") ||
-                usuario.getTipoUsuario().equalsIgnoreCase("técnico");
+        return usuario != null &&
+                (usuario.getTipoUsuario().equalsIgnoreCase("administrador") ||
+                        usuario.getTipoUsuario().equalsIgnoreCase("técnico"));
     }
 
-    private void mostrarAlerta(String mensaje) {
+    private void mostrarAlerta(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
+        alerta.setTitle(titulo);
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.showAndWait();
     }
 
-    public void inicializarUsuario(Usuario usuario) {
+    public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
-        labelUsuario.setText("Bienvenido, " + usuario.getNombre() + " [" + usuario.getTipoUsuario() + "]");
+        labelUsuario.setText(usuario.getNombre());
     }
 }

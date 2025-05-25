@@ -51,28 +51,16 @@ public class LoginController {
                 String nombre = rs.getString("nombre");
                 String tipoUsuario = rs.getString("tipo_usuario");
 
-                Usuario usuario = new Usuario(id, nombre, correo, tipoUsuario, clave);
+                Usuario usuario = new Usuario(id, nombre, correo, clave, tipoUsuario);
 
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                FXMLLoader loader;
-                Parent root;
-                Scene nuevaEscena;
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/principal.fxml"));
+                Parent root = loader.load();
+                PrincipalController controller = loader.getController();
+                controller.setUsuario(usuario);
+                stage.setTitle("Panel Principal");
 
-                if (tipoUsuario.equalsIgnoreCase("administrador")) {
-                    loader = new FXMLLoader(getClass().getResource("/view/principal.fxml"));
-                    root = loader.load();
-                    PrincipalController controller = loader.getController();
-                    controller.setUsuario(usuario);
-                    stage.setTitle("Panel Principal");
-                } else {
-                    loader = new FXMLLoader(getClass().getResource("/view/tickets.fxml"));
-                    root = loader.load();
-                    TicketController controller = loader.getController();
-                    controller.inicializarUsuario(usuario);
-                    stage.setTitle("Gestión de Tickets");
-                }
-
-                nuevaEscena = new Scene(root);
+                Scene nuevaEscena = new Scene(root);
                 stage.setScene(nuevaEscena);
                 stage.show();
 

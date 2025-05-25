@@ -3,12 +3,44 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.PrincipalController">
+<AnchorPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controllers.PrincipalController"
+            prefWidth="300" prefHeight="400">
+
     <children>
-        <Button layoutX="30" layoutY="40" text="Gestionar Usuarios" onAction="#abrirUsuarios"/>
-        <Button layoutX="30" layoutY="80" text="Gestionar Estados" onAction="#abrirEstados"/>
-        <Button layoutX="30" layoutY="120" text="Gestionar Tickets" onAction="#abrirTickets"/>
-        <Button layoutX="30" layoutY="160" text="Cerrar sesión" onAction="#cerrarSesion"/>
+        <Button fx:id="btnConfiguracion"
+                layoutX="30" layoutY="40"
+                text="Configuración del Sistema"
+                onAction="#abrirConfiguracion"/>
+
+        <Button fx:id="btnDepartamentos"
+                layoutX="30" layoutY="80"
+                text="Gestionar Departamentos"
+                onAction="#abrirDepartamentos"/>
+
+        <Button fx:id="btnUsuarios"
+                layoutX="30" layoutY="120"
+                text="Gestionar Usuarios"
+                onAction="#abrirUsuarios"/>
+
+        <Button fx:id="btnEstados"
+                layoutX="30" layoutY="160"
+                text="Gestionar Estados"
+                onAction="#abrirEstados"/>
+
+        <Button fx:id="btnTickets"
+                layoutX="30" layoutY="200"
+                text="Gestionar Tickets"
+                onAction="#abrirTickets"/>
+
+        <Button fx:id="btnCrearTicket"
+                layoutX="30" layoutY="240"
+                text="Crear Ticket"
+                onAction="#abrirCrearTicket"/>
+
+        <Button fx:id="btnCerrarSesion"
+                layoutX="30" layoutY="280"
+                text="Cerrar sesión"
+                onAction="#cerrarSesion"/>
     </children>
 </AnchorPane>
-

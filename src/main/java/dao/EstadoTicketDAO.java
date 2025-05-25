@@ -5,21 +5,22 @@ import java.util.List;
 
 public interface EstadoTicketDAO {
 
-    // Obtener todos los estados
+     //Obtiene todos los estados de ticket disponibles.
+
     List<EstadoTicket> obtenerTodos();
 
-    // Obtener un estado por ID
+     //Obtiene un estado de ticket por su ID.
     EstadoTicket obtenerPorId(int id);
 
-    // Guardar un nuevo estado o actualizar uno existente
+    //Guarda un nuevo estado o actualiza uno existente.
     boolean guardarEstado(EstadoTicket estado);
 
-    // Eliminar un estado por ID
+    //Elimina un estado por su ID.
     boolean eliminarEstado(int id);
 
-    // Obtener los IDs de los estados a los que se puede transicionar desde uno dado
+     //Obtiene los IDs de los estados a los que se puede transicionar desde un estado dado.
     List<Integer> obtenerEstadosSiguientes(int estadoId);
 
-    // Guardar transiciones posibles desde un estado (elimina las existentes y guarda nuevas)
+     // Primero elimina las transiciones anteriores y luego guarda las nuevas.
     boolean guardarTransiciones(int estadoOrigenId, List<Integer> estadosDestino);
 }
